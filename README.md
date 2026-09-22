@@ -1,4 +1,4 @@
-# Open System-One
+# JimmyJenk - Open System-One
 
 A local test harness for Jev-style decisions (**Noul**, **Choice** and **Score**) that can use any
 generative model as the inference backend.
