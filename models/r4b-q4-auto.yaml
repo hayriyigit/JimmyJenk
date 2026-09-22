@@ -1,0 +1,11 @@
+# R-4B Q4_K_M GGUF through llama.cpp (scripts/serve_r4b_gguf.sh): decides for itself whether to think; the answer is scored after </think>.
+id: r4b-q4-auto
+backend: llamacpp
+served_model_name: r4b-q4
+base_url_env: LLAMA_BASE_URL
+base_url: http://localhost:8081
+thinking_mode: auto
+chat_template_kwargs: {thinking_mode: auto}
+think_end: "</think>\n\n"
+thinking_budget: 4096
+supports_logprobs: true

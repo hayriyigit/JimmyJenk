@@ -1,0 +1,11 @@
+# R-4B decides for itself whether to think; the answer is scored after </think>.
+id: r4b-auto
+backend: vllm
+served_model_name: r4b
+base_url_env: VLLM_BASE_URL
+base_url: http://localhost:8000/v1
+thinking_mode: auto
+chat_template_kwargs: {thinking_mode: auto}
+think_end: "</think>\n\n"
+thinking_budget: 4096
+supports_logprobs: true

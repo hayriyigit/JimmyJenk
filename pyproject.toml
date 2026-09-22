@@ -1,0 +1,13 @@
+[project]
+name = "open-systemone"
+version = "0.1.0"
+description = "Jev-like System-One decisions (Noul / Choice / Score) from generative-model token logprobs"
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn", "httpx", "pydantic>=2", "pyyaml", "numpy", "matplotlib"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130

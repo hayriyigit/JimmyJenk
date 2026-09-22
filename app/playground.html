@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System-One Playground</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2; --surface: #fcfcfb; --surface-2: #f0efec; --border: #dcdbd6;
+  --text: #0b0b0b; --text-2: #52514e; --muted: #75746f;
+  --accent: #2a78d6; --accent-ink: #ffffff; --track: #e7e6e2;
+  --good: #008300; --bad: #c9302c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --surface-2: #242422; --border: #383835;
+    --text: #ffffff; --text-2: #c3c2b7; --muted: #9a998f;
+    --accent: #3987e5; --accent-ink: #ffffff; --track: #2e2e2c;
+    --good: #3fb950; --bad: #e66767;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2; }
+header h1 { font-size: 15px; margin: 0 8px 0 0; }
+.models { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); cursor: pointer; font-size: 13px; white-space: nowrap; }
+.chip input { margin: 0; }
+.chip.off { opacity: .55; cursor: not-allowed; }
+button { font: inherit; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button.small { padding: 2px 8px; font-size: 12px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+main { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 16px; padding: 16px; align-items: start; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } header h1 { flex: 1; } .models { order: 3; flex-basis: 100%; } }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-width: 0; }
+.panel + .panel { margin-top: 16px; }
+.panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.panel-head h2 { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); margin: 0; flex: 1; }
+textarea, input[type=text], input[type=number], select { width: 100%; font: 13px/1.4 ui-monospace, "SF Mono", Menlo, monospace; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+textarea { resize: vertical; }
+#state { min-height: 140px; }
+#questions-json { min-height: 360px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 2px 10px; font-size: 12px; }
+.seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+.q { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: var(--surface); }
+.q-head { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.q-head input { flex: 1; }
+.type { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; }
+.row { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+.row > .idx { width: 22px; color: var(--muted); font-size: 12px; text-align: right; flex: none; }
+.row input.key { max-width: 120px; }
+label.sub { display: block; font-size: 12px; color: var(--text-2); margin-top: 8px; }
+.add-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.tabs button[aria-selected=true] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.summary { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.summary th, .summary td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.summary th { color: var(--text-2); font-weight: 500; }
+.summary-wrap { overflow-x: auto; }
+.qr { margin-bottom: 16px; }
+.qr h3 { font-size: 14px; margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.col { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--surface); min-width: 0; }
+.col-head { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.headline { font-size: 20px; font-weight: 650; margin-bottom: 8px; overflow-wrap: anywhere; }
+.bar { display: grid; grid-template-columns: minmax(60px, 38%) 1fr 44px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+.bar .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); }
+.bar.top .lbl { color: var(--text); font-weight: 600; }
+.track { height: 10px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+.val { text-align: right; font-variant-numeric: tabular-nums; }
+.foot { margin-top: 8px; font-size: 12px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.ok { color: var(--good); font-weight: 600; } .no { color: var(--bad); font-weight: 600; }
+.err { color: var(--bad); white-space: pre-wrap; font-size: 13px; }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+pre { margin: 0; font: 12px/1.45 ui-monospace, Menlo, monospace; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow: auto; max-height: 75vh; }
+</style>
+</head>
+<body>
+<header>
+  <h1>System-One Playground</h1>
+  <div class="models" id="models" aria-label="Models to run"></div>
+  <button id="clear">Clear</button>
+  <button id="run" class="primary">Run</button>
+</header>
+<main>
+  <div>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="state-label">State</h2>
+        <div class="seg" id="state-seg" role="group" aria-label="State format">
+          <button data-mode="json">JSON</button><button data-mode="text">Text</button>
+        </div>
+      </div>
+      <textarea id="state" aria-labelledby="state-label" spellcheck="false"></textarea>
+      <div id="state-err" class="err"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="q-label">Questions</h2>
+        <div class="seg" id="q-seg" role="group" aria-label="Questions format">
+          <button data-qmode="form">Form</button><button data-qmode="json">JSON</button>
+        </div>
+      </div>
+      <div id="questions"></div>
+      <textarea id="questions-json" aria-labelledby="q-label" spellcheck="false" hidden
+        placeholder='{"refund": {"type": "noul", "instructions": "Does the customer request a refund?", "expected": true}}'></textarea>
+      <div id="q-err" class="err"></div>
+      <div class="add-row" id="add-row">
+        <button data-add="noul">+ Noul</button><button data-add="choice">+ Choice</button><button data-add="score">+ Score</button>
+      </div>
+    </section>
+  </div>
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="results" aria-selected="true">Results</button>
+      <button role="tab" data-tab="raw" aria-selected="false">Raw</button>
+    </div>
+    <div id="results"><div class="empty">Pick one or more models and press Run. Several models run side by side.</div></div>
+    <pre id="raw" hidden>{}</pre>
+  </section>
+</main>
+<script>
+const DEFAULT = {
+  stateMode: "json",
+  stateText: JSON.stringify({message: "My card was charged twice and I want the extra payment back."}, null, 2),
+  models: ["r4b-short"],
+  questionsMode: "form",
+  questionsText: "",
+  questions: [
+    {id: "refund_requested", type: "noul", instructions: "Does the customer request a refund?", criteria: {true: "", false: ""}, expected: "true"},
+    {id: "department", type: "choice", instructions: "Which department should handle this?", expected: "billing",
+     criteria: [["billing", "payment/refund issues"], ["technical", "bugs/API problems"], ["account", "login/account issues"], ["other", "none"]]},
+    {id: "urgency", type: "score", instructions: "How urgent is this?", expected: "",
+     criteria: ["no urgency", "time-sensitive but not critical", "immediate/critical"]},
+  ],
+};
+const BLANK = {
+  noul: () => ({type: "noul", instructions: "", criteria: {true: "", false: ""}, expected: ""}),
+  choice: () => ({type: "choice", instructions: "", criteria: [["option_a", ""], ["option_b", ""]], expected: ""}),
+  score: () => ({type: "score", instructions: "", criteria: ["low", "medium", "high"], expected: ""}),
+};
+const $ = s => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k.startsWith("on") ? e.addEventListener(k.slice(2), v) : e.setAttribute(k, v);
+  e.append(...kids.filter(k => k != null));
+  return e;
+};
+const f3 = x => x.toFixed(3);
+
+let S = structuredClone(DEFAULT);
+try { S = JSON.parse(localStorage.getItem("systemone") || "null") || S; } catch {}
+S.questionsMode ??= "form";  // older saved sessions predate the JSON view
+S.questionsText ??= "";
+const save = () => { try { localStorage.setItem("systemone", JSON.stringify(S)); } catch {} };
+
+function renderStateEditor() {
+  $("#state").value = S.stateText;
+  document.querySelectorAll("#state-seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === S.stateMode));
+}
+
+function input(value, onchange, attrs = {}) {
+  return el("input", {type: "text", value, ...attrs, oninput: e => { onchange(e.target.value); save(); }});
+}
+
+function renderQuestions() {
+  const box = $("#questions");
+  box.replaceChildren();
+  if (!S.questions.length) box.append(el("div", {class: "empty"}, "No questions yet."));
+  S.questions.forEach((q, qi) => {
+    const rerender = () => { save(); renderQuestions(); };
+    const card = el("div", {class: "q"},
+      el("div", {class: "q-head"},
+        el("span", {class: "type"}, q.type),
+        input(q.id, v => q.id = v, {"aria-label": "Question id"}),
+        el("button", {class: "small", "aria-label": `Remove ${q.id}`, onclick: () => { S.questions.splice(qi, 1); rerender(); }}, "Remove")),
+      el("label", {class: "sub"}, "Instructions"),
+      el("textarea", {rows: 2, "aria-label": "Instructions", oninput: e => { q.instructions = e.target.value; save(); }},
+        typeof q.instructions === "string" ? q.instructions : JSON.stringify(q.instructions)));
+
+    if (q.type === "noul") {
+      card.append(el("label", {class: "sub"}, "Criteria (optional)"),
+        el("div", {class: "row"}, el("span", {class: "idx"}, "yes"), input(q.criteria.true, v => q.criteria.true = v, {placeholder: "what counts as true", "aria-label": "True means"})),
+        el("div", {class: "row"}, el("span", {class: "idx"}, "no"), input(q.criteria.false, v => q.criteria.false = v, {placeholder: "what counts as false", "aria-label": "False means"})));
+    } else if (q.type === "choice") {
+      card.append(el("label", {class: "sub"}, "Options: name and description"));
+      q.criteria.forEach((opt, i) => card.append(el("div", {class: "row"},
+        input(opt[0], v => opt[0] = v, {class: "key", "aria-label": "Option name"}),
+        input(opt[1], v => opt[1] = v, {placeholder: "description", "aria-label": "Option description"}),
+        el("button", {class: "small", "aria-label": "Remove option", onclick: () => { q.criteria.splice(i, 1); rerender(); }}, "×"))));
+      card.append(el("div", {class: "row"}, el("button", {class: "small", onclick: () => { q.criteria.push([`option_${q.criteria.length + 1}`, ""]); rerender(); }}, "+ option")));
+    } else {
+      card.append(el("label", {class: "sub"}, "Levels, lowest first (2–10)"));
+      q.criteria.forEach((lvl, i) => card.append(el("div", {class: "row"},
+        el("span", {class: "idx"}, i),
+        input(lvl, v => q.criteria[i] = v, {"aria-label": `Level ${i}`}),
+        el("button", {class: "small", "aria-label": "Remove level", onclick: () => { q.criteria.splice(i, 1); rerender(); }}, "×"))));
+      if (q.criteria.length < 10)
+        card.append(el("div", {class: "row"}, el("button", {class: "small", onclick: () => { q.criteria.push(""); rerender(); }}, "+ level")));
+    }
+    card.append(el("label", {class: "sub"}, "Expected answer (optional, marks results right or wrong)"),
+      input(q.expected, v => q.expected = v, {placeholder: q.type === "noul" ? "true / false" : q.type === "score" ? "level number" : "option name", "aria-label": "Expected answer"}));
+    box.append(card);
+  });
+}
+
+function buildRequest(model) {
+  let state = S.stateText;
+  if (S.stateMode === "json") state = JSON.parse(S.stateText);
+  const questions = {};
+  for (const q of S.questions) {
+    let criteria;
+    if (q.type === "noul") {
+      const c = Object.fromEntries(Object.entries(q.criteria).filter(([, v]) => v.trim()));
+      criteria = Object.keys(c).length ? c : undefined;
+    } else if (q.type === "choice") criteria = Object.fromEntries(q.criteria);
+    else criteria = q.criteria;
+    questions[q.id] = {type: q.type, instructions: q.instructions, criteria};
+  }
+  return {model, state, questions};
+}
+
+function bars(probs, raw, mapping) {
+  const top = Object.entries(probs).sort((a, b) => b[1] - a[1])[0][0];
+  const labelOf = Object.fromEntries(Object.entries(mapping).map(([l, v]) => [v, l]));
+  return Object.entries(probs).map(([k, p]) => el("div", {class: "bar" + (k === top ? " top" : ""),
+      title: `${k}: p=${p.toFixed(4)} · label ${labelOf[k]} · raw logprob ${raw[labelOf[k]].toFixed(3)}`},
+    el("span", {class: "lbl"}, k), el("span", {class: "track"}, el("span", {class: "fill", style: `width:${(p * 100).toFixed(1)}%`})),
+    el("span", {class: "val"}, f3(p))));
+}
+
+function verdict(q, answer) {
+  if (q.expected === "" || q.expected == null) return null;
+  const e = String(q.expected).trim();
+  const got = answer.type === "noul" ? String(answer.noul >= 0.5)
+    : answer.type === "choice" ? answer.choice
+    : Object.entries(answer.probabilities).sort((a, b) => b[1] - a[1])[0][0];
+  return got === e ? el("span", {class: "ok"}, "✓ correct") : el("span", {class: "no"}, `✗ expected ${e}`);
+}
+
+function renderResults(runs) {
+  const box = $("#results");
+  box.replaceChildren();
+  const rows = [["model", "backend", "thinking", "probabilities", "template", "latency", "prompt tok", "completion tok"]];
+  for (const {model, resp, error} of runs) {
+    if (error) { rows.push([model, error, "", "", "", "", "", ""]); continue; }
+    const m = resp.metadata, qs = Object.values(m.questions);
+    const cal = qs.filter(q => q.calibrated).length;
+    rows.push([resp.model, m.backend, m.thinking_mode ?? "–", cal ? `calibrated ${cal}/${qs.length}` : "raw",
+      m.prompt_template_version, `${resp.timing.total_ms.toFixed(0)} ms`, resp.usage.prompt_tokens, resp.usage.completion_tokens]);
+  }
+  box.append(el("div", {class: "summary-wrap"}, el("table", {class: "summary"},
+    el("thead", {}, el("tr", {}, ...rows[0].map(h => el("th", {}, h)))),
+    el("tbody", {}, ...rows.slice(1).map(r => el("tr", {}, ...r.map(c => el("td", {class: r[1] && String(r[1]).startsWith("HTTP") ? "err" : ""}, String(c)))))))));
+
+  for (const q of S.questions) {
+    const cols = runs.map(({model, resp, error}) => {
+      const col = el("div", {class: "col"}, el("div", {class: "col-head"}, resp?.model ?? model));
+      if (error) { col.append(el("div", {class: "err"}, error)); return col; }
+      const a = resp.answers[q.id], m = resp.metadata.questions[q.id];
+      let head, probs;
+      if (a.type === "noul") { head = `${a.noul >= 0.5 ? "YES" : "NO"} · ${f3(a.noul)}`; probs = {YES: a.noul, NO: 1 - a.noul}; }
+      else if (a.type === "choice") { head = a.choice; probs = a.probabilities; }
+      else { head = `${a.score.toFixed(2)} / ${Object.keys(a.legend).length - 1}`; probs = Object.fromEntries(Object.entries(a.probabilities).map(([k, p]) => [`${k} · ${a.legend[k]}`, p])); }
+      const mapping = a.type === "noul" ? {A: "YES", B: "NO"}
+        : a.type === "score" ? Object.fromEntries(Object.entries(m.candidate_mapping).map(([l, v]) => [l, `${v} · ${a.legend[v]}`]))
+        : m.candidate_mapping;
+      col.append(el("div", {class: "headline"}, head), ...bars(probs, m.raw_logprobs, mapping),
+        el("div", {class: "foot"},
+          a.type !== "noul" ? el("span", {}, `confidence ${f3(a.confidence)}`) : null,
+          el("span", {}, m.calibrated ? `calibrated T=${m.temperature.toFixed(2)}` : "raw"),
+          el("span", {title: "share of the model's next-token probability that landed on a valid label"}, `label mass ${f3(m.candidate_mass)}`),
+          el("span", {}, `${m.latency_ms.toFixed(0)} ms`),
+          m.backend_debug?.thinking_tokens != null ? el("span", {}, `thought ${m.backend_debug.thinking_tokens} tok`) : null,
+          verdict(q, a)));
+      return col;
+    });
+    box.append(el("div", {class: "qr"}, el("h3", {}, q.id, el("span", {class: "type"}, q.type)), el("div", {class: "cols"}, ...cols)));
+  }
+}
+
+// JSON view: the API's `questions` object, plus an optional `expected` per question (stripped before sending).
+function questionsToJSON(questions) {
+  return Object.fromEntries(questions.map(q => {
+    const out = {type: q.type, instructions: q.instructions};
+    if (q.type === "choice") out.criteria = Object.fromEntries(q.criteria);
+    else if (q.type === "score") out.criteria = q.criteria;
+    else if (q.criteria.true || q.criteria.false) out.criteria = q.criteria;
+    const e = String(q.expected ?? "").trim();
+    if (e) out.expected = q.type === "noul" ? e === "true" : q.type === "score" ? Number(e) : e;
+    return [q.id, out];
+  }));
+}
+
+function questionsFromJSON(text) {
+  const obj = JSON.parse(text);
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw new Error("expected an object of {question_id: question}");
+  return Object.entries(obj).map(([id, q]) => {
+    const c = q?.criteria;
+    if (q?.type === "noul") {
+      if (c != null && (typeof c !== "object" || Array.isArray(c))) throw new Error(`${id}: noul criteria must be {"true": ..., "false": ...}`);
+      return {id, type: "noul", instructions: q.instructions ?? "", criteria: {true: c?.true ?? "", false: c?.false ?? ""}, expected: String(q.expected ?? "")};
+    }
+    if (q?.type === "choice") {
+      if (!c || typeof c !== "object" || Array.isArray(c)) throw new Error(`${id}: choice criteria must be an object of option: description`);
+      return {id, type: "choice", instructions: q.instructions ?? "", criteria: Object.entries(c), expected: String(q.expected ?? "")};
+    }
+    if (q?.type === "score") {
+      if (!Array.isArray(c)) throw new Error(`${id}: score criteria must be a list of levels, lowest first`);
+      return {id, type: "score", instructions: q.instructions ?? "", criteria: c, expected: String(q.expected ?? "")};
+    }
+    throw new Error(`${id}: type must be "noul", "choice" or "score"`);
+  });
+}
+
+function renderQuestionsMode() {
+  const json = S.questionsMode === "json";
+  document.querySelectorAll("#q-seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.qmode === S.questionsMode));
+  $("#questions").hidden = json; $("#add-row").hidden = json; $("#questions-json").hidden = !json;
+  if (json) $("#questions-json").value = S.questionsText;
+  else renderQuestions();
+}
+
+async function run() {
+  $("#state-err").textContent = "";
+  $("#q-err").textContent = "";
+  if (S.questionsMode === "json") {
+    try { S.questions = questionsFromJSON(S.questionsText); save(); }
+    catch (e) { $("#q-err").textContent = `Questions JSON: ${e.message}`; return; }
+  }
+  const models = S.models;
+  if (!models.length) { $("#state-err").textContent = "No model selected, or no model server is running."; return; }
+  let reqs;
+  try { reqs = models.map(buildRequest); }
+  catch (e) { $("#state-err").textContent = `State is not valid JSON: ${e.message}. Fix it or switch to Text.`; return; }
+  $("#run").disabled = true; $("#run").textContent = "Running…";
+  const runs = await Promise.all(reqs.map(async req => {
+    try {
+      const r = await fetch("/v1/systemone", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(req)});
+      const body = await r.json();
+      return r.ok ? {model: req.model, request: req, resp: body} : {model: req.model, request: req, error: `HTTP ${r.status}: ${JSON.stringify(body.detail)}`};
+    } catch (e) { return {model: req.model, request: req, error: String(e)}; }
+  }));
+  $("#run").disabled = false; $("#run").textContent = "Run";
+  renderResults(runs);
+  $("#raw").textContent = JSON.stringify(runs.map(({model, request, resp, error}) => ({model, request, response: resp ?? {error}})), null, 2);
+}
+
+async function loadModels() {
+  let models = [];
+  try { models = await (await fetch("/v1/models")).json(); } catch {}
+  // Drop selections whose server is down; if nothing is left, pick the first model that is up.
+  const online = models.filter(m => m.online).map(m => m.id);
+  S.models = S.models.filter(id => online.includes(id));
+  if (!S.models.length && online.length) S.models = [online.find(id => id.endsWith("short")) ?? online[0]];
+  save();
+  $("#models").replaceChildren(...models.map(m => el("label", {class: "chip" + (m.online ? "" : " off"),
+      title: m.online ? `${m.backend} · ${m.served_model_name} · thinking ${m.thinking_mode ?? "n/a"}` : `${m.backend} server at ${m.url} is not running`},
+    el("input", {type: "checkbox", value: m.id, ...(S.models.includes(m.id) ? {checked: ""} : {}), ...(m.online ? {} : {disabled: ""}),
+      onchange: e => { S.models = e.target.checked ? [...S.models, m.id] : S.models.filter(x => x !== m.id); save(); }}),
+    m.online ? m.id : `${m.id} · offline`)));
+}
+
+$("#state").addEventListener("input", e => { S.stateText = e.target.value; save(); });
+document.querySelectorAll("#state-seg button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.mode === "json" && S.stateMode === "text") {
+    try { JSON.parse(S.stateText); } catch { S.stateText = JSON.stringify(S.stateText); }  // wrap plain text as a JSON string
+  }
+  S.stateMode = b.dataset.mode; save(); renderStateEditor();
+}));
+$("#questions-json").addEventListener("input", e => { S.questionsText = e.target.value; save(); });
+document.querySelectorAll("#q-seg button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.qmode === S.questionsMode) return;
+  $("#q-err").textContent = "";
+  if (b.dataset.qmode === "json") S.questionsText = JSON.stringify(questionsToJSON(S.questions), null, 2);
+  else {
+    try { S.questions = questionsFromJSON(S.questionsText); }
+    catch (e) { $("#q-err").textContent = `Questions JSON: ${e.message}. Fix it before switching to Form.`; return; }
+  }
+  S.questionsMode = b.dataset.qmode; save(); renderQuestionsMode();
+}));
+document.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => {
+  const n = S.questions.filter(q => q.type === b.dataset.add).length + 1;
+  S.questions.push({id: `${b.dataset.add}_${n}`, ...BLANK[b.dataset.add]()}); save(); renderQuestions();
+}));
+document.querySelectorAll("[role=tab]").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("[role=tab]").forEach(t => t.setAttribute("aria-selected", t === b));
+  $("#results").hidden = b.dataset.tab !== "results"; $("#raw").hidden = b.dataset.tab !== "raw";
+}));
+$("#run").addEventListener("click", run);
+$("#clear").addEventListener("click", () => {
+  const questionsMode = S.questionsMode;
+  S = structuredClone(DEFAULT); S.questions = []; S.stateText = ""; S.questionsMode = questionsMode; S.questionsText = "{}"; save();
+  renderStateEditor(); renderQuestionsMode(); loadModels();
+  $("#results").replaceChildren(el("div", {class: "empty"}, "Cleared.")); $("#raw").textContent = "{}";
+});
+renderStateEditor(); renderQuestionsMode(); loadModels();
+</script>
+</body>
+</html>

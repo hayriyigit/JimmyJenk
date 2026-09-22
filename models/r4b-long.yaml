@@ -1,0 +1,11 @@
+# R-4B always thinks; the answer is scored after </think>.
+id: r4b-long
+backend: vllm
+served_model_name: r4b
+base_url_env: VLLM_BASE_URL
+base_url: http://localhost:8000/v1
+thinking_mode: long
+chat_template_kwargs: {thinking_mode: long}
+think_end: "</think>\n\n"
+thinking_budget: 4096
+supports_logprobs: true

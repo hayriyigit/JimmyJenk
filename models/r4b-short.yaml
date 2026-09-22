@@ -1,0 +1,10 @@
+# Default System-One configuration: R-4B answers without a thinking phase.
+id: r4b-short
+aliases: [r4b]
+backend: vllm
+served_model_name: r4b
+base_url_env: VLLM_BASE_URL
+base_url: http://localhost:8000/v1
+thinking_mode: short
+chat_template_kwargs: {thinking_mode: short}
+supports_logprobs: true
