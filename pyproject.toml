@@ -1,7 +1,7 @@
 [project]
-name = "open-systemone"
+name = "jimmyjenk"
 version = "0.1.0"
-description = "Jev-like System-One decisions (Noul / Choice / Score) from generative-model token logprobs"
+description = "JimmyJenk: a local harness for Jev-style System-One decisions (Noul / Choice / Score) built on any LLM's token logprobs"
 requires-python = ">=3.11"
 dependencies = ["fastapi", "uvicorn", "httpx", "pydantic>=2", "pyyaml", "numpy", "matplotlib"]
 

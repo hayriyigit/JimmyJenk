@@ -14,6 +14,10 @@ padded or adversarial.
 > Not affiliated with TypeSafe. Jev, Noul, Choice and Score refer to the public semantics of TypeSafe's
 > API. This project does not reproduce TypeSafe's proprietary confidence or calibration algorithms.
 
+**About the name.** JimmyJenk is a playful English respelling of *Semicenk*, the Turkish singer. In
+Turkish, *c* is pronounced like the English *j*, so *Cenk* becomes *Jenk*. It also happens to start with
+the same J as Jev. The project has no connection to Semicenk.
+
 ## How it works
 
 1. **One prompt per question.** Every question is compiled separately against the same state: state,
